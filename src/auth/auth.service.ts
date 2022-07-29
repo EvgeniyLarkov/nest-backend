@@ -1,22 +1,31 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { User } from '../users/entities/user.entity';
 import * as bcrypt from 'bcryptjs';
-import { AuthEmailLoginDto } from './dto/auth-email-login.dto';
-import { AuthUpdateDto } from './dto/auth-update.dto';
-import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';
-import { RoleEnum } from 'src/roles/roles.enum';
-import { StatusEnum } from 'src/statuses/statuses.enum';
-import * as crypto from 'crypto';
 import { plainToClass } from 'class-transformer';
-import { Status } from 'src/statuses/entities/status.entity';
-import { Role } from 'src/roles/entities/role.entity';
-import { AuthProvidersEnum } from './auth-providers.enum';
-import { SocialInterface } from 'src/social/interfaces/social.interface';
-import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
-import { UsersService } from 'src/users/users.service';
+import * as crypto from 'crypto';
 import { ForgotService } from 'src/forgot/forgot.service';
 import { MailService } from 'src/mail/mail.service';
+import { Role } from 'src/roles/entities/role.entity';
+import { RoleEnum } from 'src/roles/roles.enum';
+import { SocialInterface } from 'src/social/interfaces/social.interface';
+import { Status } from 'src/statuses/entities/status.entity';
+import { StatusEnum } from 'src/statuses/statuses.enum';
+import { UsersService } from 'src/users/users.service';
+
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
+import {
+  randomStringGenerator,
+} from '@nestjs/common/utils/random-string-generator.util';
+import { JwtService } from '@nestjs/jwt';
+
+import { User } from '../users/entities/user.entity';
+import { AuthProvidersEnum } from './auth-providers.enum';
+import { AuthEmailLoginDto } from './dto/auth-email-login.dto';
+import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
+import { AuthResponseDto } from './dto/auth-response.dto';
+import { AuthUpdateDto } from './dto/auth-update.dto';
 
 @Injectable()
 export class AuthService {
@@ -30,7 +39,7 @@ export class AuthService {
   async validateLogin(
     loginDto: AuthEmailLoginDto,
     onlyAdmin: boolean,
-  ): Promise<{ token: string; user: User }> {
+  ): Promise<{ token: string; user: User } & AuthResponseDto> {
     const user = await this.usersService.findOne({
       email: loginDto.email,
     });
@@ -76,7 +85,11 @@ export class AuthService {
         role: user.role,
       });
 
-      return { token, user: user };
+      return {
+        status: HttpStatus.ACCEPTED,
+        token,
+        user,
+      };
     } else {
       throw new HttpException(
         {
@@ -93,7 +106,7 @@ export class AuthService {
   async validateSocialLogin(
     authProvider: string,
     socialData: SocialInterface,
-  ): Promise<{ token: string; user: User }> {
+  ): Promise<{ token: string; user: User } & AuthResponseDto> {
     let user: User;
     const socialEmail = socialData.email?.toLowerCase();
 
@@ -142,12 +155,13 @@ export class AuthService {
     });
 
     return {
+      status: HttpStatus.ACCEPTED,
       token: jwtToken,
       user,
     };
   }
 
-  async register(dto: AuthRegisterLoginDto): Promise<void> {
+  async register(dto: AuthRegisterLoginDto): Promise<AuthResponseDto> {
     const hash = crypto
       .createHash('sha256')
       .update(randomStringGenerator())
@@ -171,6 +185,8 @@ export class AuthService {
         hash,
       },
     });
+
+    return { status: HttpStatus.CREATED };
   }
 
   async confirmEmail(hash: string): Promise<void> {
