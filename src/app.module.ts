@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { UsersModule } from './users/users.module';
-import { FilesModule } from './files/files.module';
+// import { FilesModule } from './files/files.module';
 import { AuthModule } from './auth/auth.module';
 import databaseConfig from './config/database.config';
 import authConfig from './config/auth.config';
@@ -27,6 +27,7 @@ import { MailConfigService } from './mail/mail-config.service';
 import { ForgotModule } from './forgot/forgot.module';
 import { MailModule } from './mail/mail.module';
 import { HomeModule } from './home/home.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -68,7 +69,7 @@ import { HomeModule } from './home/home.module';
       resolvers: [new HeaderResolver(['x-custom-lang'])],
     }),
     UsersModule,
-    FilesModule,
+    // FilesModule,
     AuthModule,
     AuthFacebookModule,
     AuthGoogleModule,
@@ -77,6 +78,7 @@ import { HomeModule } from './home/home.module';
     ForgotModule,
     MailModule,
     HomeModule,
+    ChatModule,
   ],
 })
 export class AppModule {}

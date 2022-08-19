@@ -1,4 +1,5 @@
 import * as bcrypt from 'bcryptjs';
+import { Exclude } from 'class-transformer';
 import { AuthProvidersEnum } from 'src/auth/auth-providers.enum';
 import { EntityHelper } from 'src/utils/entity-helper';
 import {
@@ -28,6 +29,7 @@ export class User extends EntityHelper {
   email: string | null;
 
   @Column({ nullable: true })
+  @Exclude({ toPlainOnly: true })
   password: string;
 
   public previousPassword: string;
