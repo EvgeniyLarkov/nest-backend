@@ -8,8 +8,6 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { ChatService } from './chat.service';
-import { DialogGetDto } from './dto/gialog-get.dto';
-import { DialogCreateDto } from './dto/dialog-create.dto';
 import { MessagePostDto } from './dto/message-post.dto';
 
 enum ResponseEvents {
@@ -35,16 +33,6 @@ export class ChatGateway implements OnGatewayConnection {
 
   constructor(public service: ChatService) {
     this.connectionsHandler = {};
-  }
-
-  @SubscribeMessage('get-dialog')
-  getDialog(@MessageBody() data: DialogGetDto) {
-    return this.service.getDialog(data);
-  }
-
-  @SubscribeMessage('create-dialog')
-  createDialog(@MessageBody() data: DialogCreateDto) {
-    return this.service.createDialog(data);
   }
 
   @SubscribeMessage('message')

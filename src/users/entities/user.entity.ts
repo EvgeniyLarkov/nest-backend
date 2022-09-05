@@ -1,6 +1,7 @@
 import * as bcrypt from 'bcryptjs';
 import { Exclude } from 'class-transformer';
 import { AuthProvidersEnum } from 'src/auth/auth-providers.enum';
+import { ChatDialogEntity } from 'src/chat/entities/chat-dialog.entity';
 import { EntityHelper } from 'src/utils/entity-helper';
 import {
   AfterLoad,
@@ -11,6 +12,7 @@ import {
   DeleteDateColumn,
   Entity,
   Index,
+  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -20,7 +22,7 @@ import { FileEntity } from '../../files/entities/file.entity';
 import { Role } from '../../roles/entities/role.entity';
 import { Status } from '../../statuses/entities/status.entity';
 
-@Entity()
+@Entity('user')
 export class User extends EntityHelper {
   @PrimaryGeneratedColumn()
   id: number;
@@ -77,6 +79,9 @@ export class User extends EntityHelper {
     eager: true,
   })
   status?: Status;
+
+  @ManyToMany(() => ChatDialogEntity, (dialog) => dialog.participants)
+  dialogs: ChatDialogEntity[];
 
   @Column({ nullable: true })
   @Index()

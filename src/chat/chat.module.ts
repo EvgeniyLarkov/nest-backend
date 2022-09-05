@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from 'src/users/users.module';
+import { ChatController } from './chat.controller';
 import { ChatGateway } from './chat.gateway';
 import { ChatService } from './chat.service';
 import { ChatDialogEntity } from './entities/chat-dialog.entity';
@@ -25,5 +26,6 @@ import { ChatMessageEntity } from './entities/chat-message.entity';
     }),
   ],
   providers: [ChatGateway, ChatService],
+  controllers: [ChatController],
 })
 export class ChatModule {}

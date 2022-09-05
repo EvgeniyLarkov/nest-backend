@@ -6,8 +6,10 @@ import {
   DeleteDateColumn,
   Entity,
   Index,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  RelationId,
   UpdateDateColumn,
 } from 'typeorm';
 
@@ -31,9 +33,14 @@ export class ChatMessageEntity extends EntityHelper {
   sender: number;
 
   @ManyToOne(() => ChatDialogEntity, (dialog) => dialog.messages)
+  @JoinColumn({ name: 'dialogId' })
   @IsNotEmpty()
   @Index()
   dialog: ChatDialogEntity;
+
+  @Column({ nullable: true })
+  @IsNotEmpty()
+  dialogId: string;
 
   @CreateDateColumn()
   createdAt: Date;

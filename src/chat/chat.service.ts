@@ -3,11 +3,11 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { WsException } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
+import { User } from 'src/users/entities/user.entity';
 import { UsersService } from 'src/users/users.service';
 import { IPaginationOptions } from 'src/utils/types/pagination-options';
 import { Repository } from 'typeorm';
 import { DialogCreateDto } from './dto/dialog-create.dto';
-import { DialogGetDto } from './dto/gialog-get.dto';
 import { MessageGetDto } from './dto/message-get.dto';
 import { MessagePostDto } from './dto/message-post.dto';
 import { ChatDialogEntity } from './entities/chat-dialog.entity';
@@ -20,12 +20,14 @@ export class ChatService {
     private chatDialogsRepository: Repository<ChatDialogEntity>,
     @InjectRepository(ChatMessageEntity)
     private chatMessagesRepository: Repository<ChatMessageEntity>,
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
     private jwtService: JwtService,
     private usersService: UsersService,
   ) {}
 
-  getDialog(data: DialogGetDto) {
-    const dialog = data.dialog;
+  getDialog(id: string) {
+    const dialog = id;
 
     return this.chatDialogsRepository.findOne(dialog);
   }
@@ -33,10 +35,20 @@ export class ChatService {
   getDialogMessages(data: IPaginationOptions & MessageGetDto) {
     const dialog = data.dialog;
 
-    return this.chatMessagesRepository.find({
+    return this.chatDialogsRepository.find({
       where: dialog,
       skip: (data.page - 1) * data.limit,
       take: data.limit,
+    });
+  }
+
+  getDialogs(data: IPaginationOptions & { userId: number }) {
+    const { page, limit, userId } = data;
+
+    return this.usersRepository.find({
+      where: { participants: userId },
+      skip: (page - 1) * limit,
+      take: limit,
     });
   }
 

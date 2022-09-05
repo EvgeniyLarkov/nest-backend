@@ -20,7 +20,7 @@ export class ChatDialogEntity extends EntityHelper {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToMany(() => User, {
+  @ManyToMany(() => User, (user) => user.dialogs, {
     eager: true,
   })
   @JoinTable()
