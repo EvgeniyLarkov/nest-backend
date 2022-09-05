@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Generated,
   Index,
   JoinColumn,
   ManyToOne,
@@ -18,9 +19,14 @@ import { ChatDialogEntity } from './chat-dialog.entity';
 
 @Entity({ name: 'chat-message' })
 export class ChatMessageEntity extends EntityHelper {
+  @PrimaryGeneratedColumn()
+  id: number;
+
   @ApiProperty({ example: 'cbcfa8b8-3a25-4adb-a9c6-e325f0d0f3ae' })
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @Column('uuid')
+  @Generated('uuid')
+  @Index({ unique: true })
+  uuid: string;
 
   @ApiProperty({ example: 'Hello world!' })
   @MaxLength(256)

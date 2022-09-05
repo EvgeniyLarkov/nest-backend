@@ -1,8 +1,11 @@
 import { EntityHelper } from 'src/utils/entity-helper';
 import {
+  Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Generated,
+  Index,
   JoinTable,
   ManyToMany,
   OneToMany,
@@ -16,9 +19,14 @@ import { User } from 'src/users/entities/user.entity';
 
 @Entity({ name: 'chat-dialog' })
 export class ChatDialogEntity extends EntityHelper {
+  @PrimaryGeneratedColumn()
+  id: number;
+
   @ApiProperty({ example: 'cbcfa8b8-3a25-4adb-a9c6-e325f0d0f3ae' })
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @Column('uuid')
+  @Generated('uuid')
+  @Index({ unique: true })
+  uuid: string;
 
   @ManyToMany(() => User, (user) => user.dialogs, {
     eager: true,
