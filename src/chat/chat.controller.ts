@@ -32,8 +32,15 @@ export class ChatController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  createDialog(@Body() createDialogDto: DialogCreateDto) {
-    return this.chatService.createDialog(createDialogDto);
+  createDialog(@Request() req, @Body() createDialogDto: { reciever: string }) {
+    const userHash = req.user.hash as string;
+
+    const data = <DialogCreateDto>{
+      reciever: createDialogDto.reciever,
+      initiator: userHash,
+    };
+
+    return this.chatService.createDialog(data);
   }
 
   @Get()

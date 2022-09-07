@@ -33,6 +33,15 @@ export class UsersService {
     });
   }
 
+  findUserDialogsWithPagination(data: IPaginationOptions & { userId: number }) {
+    const { page, limit, userId } = data;
+
+    return this.usersRepository.find({
+      where: { dialogIds: userId },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+  }
   update(id: number, updateProfileDto: UpdateUserDto) {
     return this.usersRepository.save(
       this.usersRepository.create({

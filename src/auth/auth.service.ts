@@ -76,6 +76,7 @@ export class AuthService {
     if (isValidPassword) {
       const token = await this.jwtService.sign({
         id: user.id,
+        hash: user.hash,
         role: user.role,
       });
 
@@ -145,6 +146,7 @@ export class AuthService {
 
     const jwtToken = await this.jwtService.sign({
       id: user.id,
+      hash: user.hash,
       role: user.role,
     });
 

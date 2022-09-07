@@ -3,7 +3,6 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { WsException } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
-import { User } from 'src/users/entities/user.entity';
 import { UsersService } from 'src/users/users.service';
 import { IPaginationOptions } from 'src/utils/types/pagination-options';
 import { Repository } from 'typeorm';
@@ -20,8 +19,6 @@ export class ChatService {
     private chatDialogsRepository: Repository<ChatDialogEntity>,
     @InjectRepository(ChatMessageEntity)
     private chatMessagesRepository: Repository<ChatMessageEntity>,
-    @InjectRepository(User)
-    private usersRepository: Repository<User>,
     private jwtService: JwtService,
     private usersService: UsersService,
   ) {}
@@ -43,13 +40,7 @@ export class ChatService {
   }
 
   getDialogs(data: IPaginationOptions & { userId: number }) {
-    const { page, limit, userId } = data;
-
-    return this.usersRepository.find({
-      where: { participants: userId },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+    return this.usersService.findUserDialogsWithPagination(data);
   }
 
   async createMessage(data: MessagePostDto) {
@@ -77,8 +68,10 @@ export class ChatService {
   async createDialog(data: DialogCreateDto) {
     const { reciever, initiator } = data;
 
-    const recieverEntity = await this.usersService.findOne({ id: reciever });
-    const initiatorEntity = await this.usersService.findOne({ id: initiator });
+    const recieverEntity = await this.usersService.findOne({ hash: reciever });
+    const initiatorEntity = await this.usersService.findOne({
+      hash: initiator,
+    });
 
     if (!recieverEntity || !initiatorEntity) {
       throw new WsException({
