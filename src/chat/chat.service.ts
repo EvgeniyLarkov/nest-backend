@@ -56,7 +56,7 @@ export class ChatService {
     const { dialog, message, sender } = data;
 
     const dialogEntity = await this.chatDialogsRepository.findOne({
-      id: dialog,
+      uuid: dialog,
     });
 
     if (!dialogEntity) {
