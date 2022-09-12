@@ -12,7 +12,6 @@ import {
   DeleteDateColumn,
   Entity,
   Index,
-  JoinColumn,
   ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -82,12 +81,7 @@ export class User extends EntityHelper {
   status?: Status;
 
   @ManyToMany(() => ChatDialogEntity, (dialog) => dialog.participants)
-  @JoinColumn({ name: 'dialogIds' })
   dialogs: ChatDialogEntity[];
-
-  @Column({ nullable: true })
-  @Index()
-  dialogIds: string;
 
   @Column({ nullable: true })
   @Index()

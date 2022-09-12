@@ -1,8 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { ChatMessageEntity } from '../entities/chat-message.entity';
 
 export class MessageGetDto {
   @ApiProperty({
-    example: 'fe86a328333d118b2281593bddd813a031af0bfa3ebf65be3fef264ec7288c5d',
+    example: 'fe86a328333d118b2281593bdd',
   })
-  dialog: string;
+  uuid: ChatMessageEntity['uuid'];
 }

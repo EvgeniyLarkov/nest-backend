@@ -1,14 +1,11 @@
 import { Server, Socket } from 'socket.io';
 
 import {
-  MessageBody,
   OnGatewayConnection,
-  SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
 import { ChatService } from './chat.service';
-import { MessagePostDto } from './dto/message-post.dto';
 
 enum ResponseEvents {
   chatMessage = 'chat-message',
@@ -35,22 +32,22 @@ export class ChatGateway implements OnGatewayConnection {
     this.connectionsHandler = {};
   }
 
-  @SubscribeMessage('message')
-  async createChatMessage(@MessageBody() data: MessagePostDto) {
-    const response = await this.service.createMessage(data);
+  // @SubscribeMessage('message')
+  // async createChatMessage(@MessageBody() data: MessagePostDto) {
+  //   const response = await this.service.createMessage(data);
 
-    const dialogParticipantsHashes = response.dialog.participants.map(
-      (user) => user.hash,
-    );
+  //   const dialogParticipantsHashes = response.dialog.participants.map(
+  //     (user) => user.hash,
+  //   );
 
-    dialogParticipantsHashes.forEach((participantHash) => {
-      this.sendMessage({
-        event: ResponseEvents.chatMessage,
-        message: response,
-        connection: participantHash,
-      });
-    });
-  }
+  //   dialogParticipantsHashes.forEach((participantHash) => {
+  //     this.sendMessage({
+  //       event: ResponseEvents.chatMessage,
+  //       message: response,
+  //       connection: participantHash,
+  //     });
+  //   });
+  // }
 
   private sendMessage<T>(data: IWsResponseData<T>) {
     const { message, connection, event } = data;

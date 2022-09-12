@@ -37,7 +37,7 @@ export class UsersService {
     const { page, limit, userId } = data;
 
     return this.usersRepository.find({
-      where: { dialogIds: userId },
+      where: { dialogs: userId },
       skip: (page - 1) * limit,
       take: limit,
     });

@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Body,
   Param,
   UseGuards,
@@ -19,6 +20,13 @@ import { AuthGuard } from '@nestjs/passport';
 import { infinityPagination } from 'src/utils/infinity-pagination';
 import { DialogCreateDto } from './dto/dialog-create.dto';
 import { ChatService } from './chat.service';
+import { ChatDialogEntity } from './entities/chat-dialog.entity';
+import { User } from 'src/users/entities/user.entity';
+import { UserHash } from 'src/users/helpers/user-types';
+import { MessagePostDto } from './dto/message-post.dto';
+import { ChatMessageEntity } from './entities/chat-message.entity';
+import { MessageUpdateDto } from './dto/message-update.dto';
+
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
 @UseInterceptors(ClassSerializerInterceptor)
@@ -32,12 +40,16 @@ export class ChatController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  createDialog(@Request() req, @Body() createDialogDto: { reciever: string }) {
-    const userHash = req.user.hash as string;
+  createDialog(
+    @Request() req,
+    @Body() createDialogDto: { reciever: DialogCreateDto['reciever'] },
+  ) {
+    const userHash = req.user.hash as Pick<User, 'hash'>;
+    const { reciever } = createDialogDto;
 
-    const data = <DialogCreateDto>{
-      reciever: createDialogDto.reciever,
-      initiator: userHash,
+    const data = <DialogCreateDto & UserHash>{
+      reciever,
+      userHash,
     };
 
     return this.chatService.createDialog(data);
@@ -50,26 +62,48 @@ export class ChatController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
   ) {
-    const user = req.user.id as number;
+    const user = req.user.hash as Pick<User, 'hash'>;
 
-    console.log(user);
-
-    return this.chatService.getDialogs({ page, limit, userId: user });
+    return this.chatService.getDialogs({ page, limit, userHash: user });
   }
 
-  @Get(':id')
+  @Get(':uuid')
   @HttpCode(HttpStatus.OK)
-  getDialog(@Param('id') id: string) {
-    return this.chatService.getDialog(id);
+  getDialog(@Request() req, @Param('uuid') uuid: ChatDialogEntity['uuid']) {
+    const userHash = req.user.hash as Pick<User, 'hash'>;
+
+    return this.chatService.getDialog({
+      userHash,
+      uuid,
+    });
   }
 
-  @Get(':id/messages')
+  @Post(':uuid')
+  @HttpCode(HttpStatus.CREATED)
+  postMessage(
+    @Request() req,
+    @Param('uuid') uuid: ChatDialogEntity['uuid'],
+    @Body() data: MessagePostDto,
+  ) {
+    const userHash = req.user.hash as Pick<User, 'hash'>;
+
+    return this.chatService.createMessage({
+      userHash,
+      uuid,
+      ...data,
+    });
+  }
+
+  @Get(':uuid/messages')
   @HttpCode(HttpStatus.OK)
-  async findDialogMessages(
-    @Param('id') id: string,
+  async getDialogMessages(
+    @Request() req,
+    @Param('uuid') uuid: ChatDialogEntity['uuid'],
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit: number,
   ) {
+    const userHash = req.user.hash as Pick<User, 'hash'>;
+
     if (limit > 50) {
       limit = 50;
     }
@@ -78,9 +112,40 @@ export class ChatController {
       await this.chatService.getDialogMessages({
         page,
         limit,
-        dialog: id,
+        uuid,
+        userHash,
       }),
       { page, limit },
     );
+  }
+
+  @Get('message/:uuid')
+  @HttpCode(HttpStatus.OK)
+  async getDialogMessage(
+    @Request() req,
+    @Param('uuid') uuid: ChatMessageEntity['uuid'],
+  ) {
+    const userHash = req.user.hash as Pick<User, 'hash'>;
+
+    return await this.chatService.getDialogMessage({
+      uuid,
+      userHash,
+    });
+  }
+
+  @Patch('message/:uuid')
+  @HttpCode(HttpStatus.OK)
+  async updateDialogMessage(
+    @Request() req,
+    @Param('uuid') uuid: ChatMessageEntity['uuid'],
+    @Body() data: MessageUpdateDto,
+  ) {
+    const userHash = req.user.hash as Pick<User, 'hash'>;
+
+    return await this.chatService.updateDialogMessage({
+      uuid,
+      userHash,
+      ...data,
+    });
   }
 }

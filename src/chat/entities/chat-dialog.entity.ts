@@ -1,10 +1,10 @@
 import { EntityHelper } from 'src/utils/entity-helper';
 import {
+  BeforeInsert,
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  Generated,
   Index,
   JoinTable,
   ManyToMany,
@@ -16,6 +16,7 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 import { ChatMessageEntity } from './chat-message.entity';
 import { User } from 'src/users/entities/user.entity';
+import getShortId from 'src/utils/short-id-generator';
 
 @Entity({ name: 'chat-dialog' })
 export class ChatDialogEntity extends EntityHelper {
@@ -23,9 +24,8 @@ export class ChatDialogEntity extends EntityHelper {
   id: number;
 
   @ApiProperty({ example: 'cbcfa8b8-3a25-4adb-a9c6-e325f0d0f3ae' })
-  @Column('uuid')
-  @Generated('uuid')
-  @Index({ unique: true })
+  @Column({ default: getShortId() })
+  @Index()
   uuid: string;
 
   @ManyToMany(() => User, (user) => user.dialogs, {
@@ -45,4 +45,9 @@ export class ChatDialogEntity extends EntityHelper {
 
   @DeleteDateColumn()
   deletedAt: Date;
+
+  @BeforeInsert()
+  uuidUpdater() {
+    this.uuid = getShortId();
+  }
 }

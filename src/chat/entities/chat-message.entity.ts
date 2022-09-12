@@ -5,7 +5,6 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  Generated,
   Index,
   JoinColumn,
   ManyToOne,
@@ -15,6 +14,9 @@ import {
 
 import { ApiProperty } from '@nestjs/swagger';
 import { ChatDialogEntity } from './chat-dialog.entity';
+import { BeforeInsert } from 'typeorm';
+import getShortId from 'src/utils/short-id-generator';
+import { User } from 'src/users/entities/user.entity';
 
 @Entity({ name: 'chat-message' })
 export class ChatMessageEntity extends EntityHelper {
@@ -22,8 +24,7 @@ export class ChatMessageEntity extends EntityHelper {
   id: number;
 
   @ApiProperty({ example: 'cbcfa8b8-3a25-4adb-a9c6-e325f0d0f3ae' })
-  @Column('uuid')
-  @Generated('uuid')
+  @Column()
   @Index({ unique: true })
   uuid: string;
 
@@ -32,20 +33,16 @@ export class ChatMessageEntity extends EntityHelper {
   @Column()
   message: string;
 
-  @ApiProperty({ example: 12, name: 'User id' })
+  @ManyToOne(() => User, (user) => user.id) // TO-DO
   @IsNotEmpty()
-  @Column()
-  sender: number;
+  @Index()
+  sender: User;
 
   @ManyToOne(() => ChatDialogEntity, (dialog) => dialog.messages)
-  @JoinColumn({ name: 'dialogId' })
+  @JoinColumn()
   @IsNotEmpty()
   @Index()
   dialog: ChatDialogEntity;
-
-  @Column({ nullable: true })
-  @IsNotEmpty()
-  dialogId: string;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -55,4 +52,9 @@ export class ChatMessageEntity extends EntityHelper {
 
   @DeleteDateColumn()
   deletedAt: Date;
+
+  @BeforeInsert()
+  uuidUpdater() {
+    this.uuid = getShortId(16);
+  }
 }

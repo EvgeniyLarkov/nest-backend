@@ -1,16 +1,19 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { WsException } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
+import { UserHash } from 'src/users/helpers/user-types';
 import { UsersService } from 'src/users/users.service';
 import { IPaginationOptions } from 'src/utils/types/pagination-options';
 import { Repository } from 'typeorm';
 import { DialogCreateDto } from './dto/dialog-create.dto';
-import { MessageGetDto } from './dto/message-get.dto';
+import { MessagesGetDto } from './dto/messages-get.dto';
 import { MessagePostDto } from './dto/message-post.dto';
 import { ChatDialogEntity } from './entities/chat-dialog.entity';
 import { ChatMessageEntity } from './entities/chat-message.entity';
+import { MessageGetDto } from './dto/message-get.dto';
+import { MessageUpdateDto } from './dto/message-update.dto';
 
 @Injectable()
 export class ChatService {
@@ -23,50 +26,21 @@ export class ChatService {
     private usersService: UsersService,
   ) {}
 
-  getDialog(id: string) {
-    const dialog = id;
+  getDialog(data: { uuid: ChatDialogEntity['uuid'] } & UserHash) {
+    const { uuid, userHash } = data;
 
-    return this.chatDialogsRepository.findOne(dialog);
+    return this.chatDialogsRepository
+      .createQueryBuilder('ct')
+      .innerJoin('ct.participants', 'p')
+      .where('p.hash = :userHash', { userHash })
+      .andWhere('ct.uuid = :uuid', { uuid })
+      .getOne();
   }
 
-  getDialogMessages(data: IPaginationOptions & MessageGetDto) {
-    const dialog = data.dialog;
+  async createDialog(data: DialogCreateDto & UserHash) {
+    const { reciever, userHash } = data;
 
-    return this.chatDialogsRepository.find({
-      where: dialog,
-      skip: (data.page - 1) * data.limit,
-      take: data.limit,
-    });
-  }
-
-  getDialogs(data: IPaginationOptions & { userId: number }) {
-    return this.usersService.findUserDialogsWithPagination(data);
-  }
-
-  async createMessage(data: MessagePostDto) {
-    const { dialog, message, sender } = data;
-
-    const dialogEntity = await this.chatDialogsRepository.findOne({
-      uuid: dialog,
-    });
-
-    if (!dialogEntity) {
-      throw new WsException({
-        status: HttpStatus.BAD_REQUEST,
-      });
-    }
-
-    return this.chatMessagesRepository.save(
-      this.chatMessagesRepository.create({
-        dialog: dialogEntity,
-        message,
-        sender,
-      }),
-    );
-  }
-
-  async createDialog(data: DialogCreateDto) {
-    const { reciever, initiator } = data;
+    const initiator = userHash;
 
     const recieverEntity = await this.usersService.findOne({ hash: reciever });
     const initiatorEntity = await this.usersService.findOne({
@@ -85,6 +59,134 @@ export class ChatService {
         messages: [],
       }),
     );
+  }
+
+  async getDialogs(data: IPaginationOptions & UserHash) {
+    const { page, limit, userHash } = data;
+
+    return this.chatDialogsRepository
+      .createQueryBuilder('chat-dialog')
+      .innerJoin('chat-dialog.participants', 'p')
+      .where('p.hash = :userHash', { userHash })
+      .offset((page - 1) * limit)
+      .limit(limit)
+      .getMany();
+  }
+
+  async getDialogMessages(
+    data: IPaginationOptions & MessagesGetDto & UserHash,
+  ) {
+    const { uuid, page, limit, userHash } = data;
+
+    const dialog = await this.chatDialogsRepository
+      .createQueryBuilder('cd')
+      .innerJoin('cd.participants', 'p')
+      .where('p.hash = :userHash', { userHash })
+      .andWhere('cd.uuid = :uuid', { uuid })
+      .getOne();
+
+    if (!dialog) {
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          errors: {
+            dialog: 'dialogNotFound',
+          },
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return this.chatMessagesRepository.find({
+      where: {
+        dialog: dialog.id,
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+  }
+
+  async getDialogMessage(data: MessageGetDto & UserHash) {
+    // Need To Check
+    const { uuid, userHash } = data;
+
+    const message = await this.chatMessagesRepository
+      .createQueryBuilder('cm')
+      .innerJoin('cm.dialog', 'dialog')
+      .innerJoin('dialog.participants', 'dp')
+      .where('cm.uuid=:uuid', { uuid })
+      .andWhere('dp.hash = :userHash', { userHash })
+      .getOne();
+
+    if (message) {
+      return message;
+    } else {
+      throw new HttpException(
+        {
+          status: HttpStatus.UNAUTHORIZED,
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+  }
+
+  async createMessage(
+    data: MessagePostDto & Pick<ChatDialogEntity, 'uuid'> & UserHash,
+  ) {
+    const { uuid, message, userHash } = data;
+
+    const dialogEntity = await this.getDialog({
+      uuid,
+      userHash,
+    });
+
+    if (!dialogEntity) {
+      throw new WsException({
+        status: HttpStatus.BAD_REQUEST,
+      });
+    }
+
+    const user = await this.usersService.findOne({
+      hash: userHash,
+    });
+
+    return this.chatMessagesRepository.save(
+      this.chatMessagesRepository.create({
+        dialog: dialogEntity,
+        message,
+        sender: user,
+      }),
+    );
+  }
+
+  async updateDialogMessage(
+    data: MessageUpdateDto & Pick<ChatMessageEntity, 'uuid'> & UserHash,
+  ) {
+    const { uuid, message, userHash } = data;
+
+    const messageEntity = await this.chatMessagesRepository.findOne({
+      where: {
+        uuid,
+      },
+      relations: ['sender'],
+    });
+
+    if (
+      !messageEntity ||
+      messageEntity.sender.hash !== (userHash as unknown as string)
+    ) {
+      throw new HttpException(
+        {
+          status: HttpStatus.UNAUTHORIZED,
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    return this.chatMessagesRepository.update(messageEntity, { message });
   }
 
   async handleConnection(client: Socket) {
