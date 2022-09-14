@@ -158,7 +158,7 @@ export class AuthService {
   }
 
   async register(dto: AuthRegisterLoginDto): Promise<AuthResponseDto> {
-    const hash = crypto
+    const mailHash = crypto
       .createHash('sha256')
       .update(randomStringGenerator())
       .digest('hex');
@@ -172,13 +172,13 @@ export class AuthService {
       status: {
         id: StatusEnum.inactive,
       } as Status,
-      hash,
+      mailHash,
     });
 
     await this.mailService.userSignUp({
       to: user.email,
       data: {
-        hash,
+        hash: mailHash,
       },
     });
 

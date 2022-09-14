@@ -3,6 +3,7 @@ import { Exclude } from 'class-transformer';
 import { AuthProvidersEnum } from 'src/auth/auth-providers.enum';
 import { ChatDialogEntity } from 'src/chat/entities/chat-dialog.entity';
 import { EntityHelper } from 'src/utils/entity-helper';
+import getShortId from 'src/utils/short-id-generator';
 import {
   AfterLoad,
   BeforeInsert,
@@ -83,9 +84,13 @@ export class User extends EntityHelper {
   @ManyToMany(() => ChatDialogEntity, (dialog) => dialog.participants)
   dialogs: ChatDialogEntity[];
 
+  @Column()
+  @Index()
+  hash: string;
+
   @Column({ nullable: true })
   @Index()
-  hash: string | null;
+  mailHash: string | null;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -95,4 +100,9 @@ export class User extends EntityHelper {
 
   @DeleteDateColumn()
   deletedAt: Date;
+
+  @BeforeInsert()
+  uuidUpdater() {
+    this.hash = getShortId();
+  }
 }

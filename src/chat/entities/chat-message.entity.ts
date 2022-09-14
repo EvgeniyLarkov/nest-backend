@@ -33,7 +33,8 @@ export class ChatMessageEntity extends EntityHelper {
   @Column()
   message: string;
 
-  @ManyToOne(() => User, (user) => user.id) // TO-DO
+  @ManyToOne(() => User) // TO-DO
+  @JoinColumn()
   @IsNotEmpty()
   @Index()
   sender: User;

@@ -58,5 +58,5 @@ export class CreateUserDto {
   })
   status?: Status;
 
-  hash?: string | null;
+  mailHash?: string | null;
 }

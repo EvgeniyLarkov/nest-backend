@@ -34,11 +34,11 @@ services:
     depends_on:
       - postgres
 
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - ${APP_PORT}:${APP_PORT}
-    depends_on:
-      - postgres
+  # api:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - ${APP_PORT}:${APP_PORT}
+  #   depends_on:
+  #     - postgres

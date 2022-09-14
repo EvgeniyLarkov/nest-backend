@@ -48,9 +48,15 @@ export class ChatService {
     });
 
     if (!recieverEntity || !initiatorEntity) {
-      throw new WsException({
-        status: HttpStatus.BAD_REQUEST,
-      });
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          errors: {
+            dialog: 'dialogNotFound',
+          },
+        },
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     return this.chatDialogsRepository.save(
@@ -85,15 +91,16 @@ export class ChatService {
       .andWhere('cd.uuid = :uuid', { uuid })
       .getOne();
 
+    // TO-DO not found and unathorized
     if (!dialog) {
       throw new HttpException(
         {
-          status: HttpStatus.NOT_FOUND,
+          status: HttpStatus.BAD_REQUEST,
           errors: {
             dialog: 'dialogNotFound',
           },
         },
-        HttpStatus.NOT_FOUND,
+        HttpStatus.BAD_REQUEST,
       );
     }
 
@@ -144,9 +151,15 @@ export class ChatService {
     });
 
     if (!dialogEntity) {
-      throw new WsException({
-        status: HttpStatus.BAD_REQUEST,
-      });
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          errors: {
+            dialog: 'dialogNotFound',
+          },
+        },
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     const user = await this.usersService.findOne({
@@ -186,7 +199,37 @@ export class ChatService {
       );
     }
 
-    return this.chatMessagesRepository.update(messageEntity, { message });
+    return await this.chatMessagesRepository
+      .createQueryBuilder()
+      .update(ChatMessageEntity)
+      .set({ message })
+      .where('uuid = :uuid', { uuid })
+      .execute();
+  }
+
+  async dropDialogMessage(data: Pick<ChatMessageEntity, 'uuid'> & UserHash) {
+    const { uuid, userHash } = data;
+
+    const messageEntity = await this.chatMessagesRepository.findOne({
+      where: {
+        uuid,
+      },
+      relations: ['sender'],
+    });
+
+    if (
+      !messageEntity ||
+      messageEntity.sender.hash !== (userHash as unknown as string)
+    ) {
+      throw new HttpException(
+        {
+          status: HttpStatus.UNAUTHORIZED,
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    return await this.chatMessagesRepository.softDelete({ uuid }); // TO-DO Response
   }
 
   async handleConnection(client: Socket) {
@@ -205,9 +248,12 @@ export class ChatService {
     const user = await this.usersService.findOne({ id: payload.id });
 
     if (!user) {
-      throw new WsException({
-        status: HttpStatus.UNAUTHORIZED,
-      });
+      new HttpException(
+        {
+          status: HttpStatus.UNAUTHORIZED,
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
     }
 
     return user;

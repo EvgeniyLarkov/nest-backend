@@ -5,6 +5,7 @@ import {
   Patch,
   Body,
   Param,
+  Delete,
   UseGuards,
   Query,
   DefaultValuePipe,
@@ -146,6 +147,20 @@ export class ChatController {
       uuid,
       userHash,
       ...data,
+    });
+  }
+
+  @Delete('message/:uuid')
+  @HttpCode(HttpStatus.OK)
+  async dropDialogMessage(
+    @Request() req,
+    @Param('uuid') uuid: ChatMessageEntity['uuid'],
+  ) {
+    const userHash = req.user.hash as Pick<User, 'hash'>;
+
+    return await this.chatService.dropDialogMessage({
+      uuid,
+      userHash,
     });
   }
 }
