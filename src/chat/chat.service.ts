@@ -14,6 +14,7 @@ import { ChatDialogEntity } from './entities/chat-dialog.entity';
 import { ChatMessageEntity } from './entities/chat-message.entity';
 import { MessageGetDto } from './dto/message-get.dto';
 import { MessageUpdateDto } from './dto/message-update.dto';
+import { ChatLastEntity } from './entities/chat-last.entity';
 
 @Injectable()
 export class ChatService {
@@ -22,6 +23,8 @@ export class ChatService {
     private chatDialogsRepository: Repository<ChatDialogEntity>,
     @InjectRepository(ChatMessageEntity)
     private chatMessagesRepository: Repository<ChatMessageEntity>,
+    @InjectRepository(ChatLastEntity)
+    private chatLastRepository: Repository<ChatLastEntity>,
     private jwtService: JwtService,
     private usersService: UsersService,
   ) {}
@@ -63,6 +66,7 @@ export class ChatService {
       this.chatDialogsRepository.create({
         participants: [recieverEntity, initiatorEntity],
         messages: [],
+        name: `${recieverEntity.firstName} ${recieverEntity.lastName}`,
       }),
     );
   }
@@ -76,6 +80,28 @@ export class ChatService {
       .where('p.hash = :userHash', { userHash })
       .offset((page - 1) * limit)
       .limit(limit)
+      .getMany();
+  }
+
+  async getLastDialogsWithPagination(data: IPaginationOptions & UserHash) {
+    //Надо придумать что-то получше
+    const { page, limit, userHash } = data;
+
+    const dialogs = await this.chatDialogsRepository
+      .createQueryBuilder('cd')
+      .leftJoinAndSelect('cd.participants', 'p')
+      .where('p.hash = :userHash', { userHash })
+      .offset((page - 1) * limit)
+      .limit(limit)
+      .getMany();
+
+    const dialogIds = dialogs.map((dialog) => dialog.id);
+
+    return await this.chatDialogsRepository
+      .createQueryBuilder('cd')
+      .leftJoinAndSelect('cd.participants', 'p')
+      .leftJoinAndSelect('cd.last', 'last')
+      .where('cd.id IN (:...ids)', { ids: dialogIds })
       .getMany();
   }
 
@@ -166,13 +192,60 @@ export class ChatService {
       hash: userHash,
     });
 
-    return this.chatMessagesRepository.save(
+    const messageEntity = await this.chatMessagesRepository.save(
       this.chatMessagesRepository.create({
         dialog: dialogEntity,
         message,
         sender: user,
       }),
     );
+
+    const lastData = {
+      dialogId: dialogEntity.id,
+      dialogUuid: dialogEntity.uuid,
+      userHash: user.hash,
+      userId: user.id,
+      userMessage: messageEntity.message,
+      messageUuid: messageEntity.uuid,
+      messageId: messageEntity.id,
+      messageReaded: true,
+    };
+
+    await this.chatLastRepository
+      .createQueryBuilder()
+      .insert()
+      .into(ChatLastEntity)
+      .values(lastData)
+      .orUpdate(
+        [
+          'dialogId',
+          'dialogUuid',
+          'userId',
+          'userHash',
+          'messageUuid',
+          'messageId',
+          'userMessage',
+          'messageReaded',
+        ],
+        ['dialogId'],
+      )
+      .execute();
+
+    // await this.chatLastRepository.save(
+    //   this.chatLastRepository.create({
+    //     dialogId: dialogEntity.id,
+    //     dialogUUID: dialogEntity.uuid,
+    //     userId: user.id,
+    //     userHash: user.hash,
+    //     userLastName: user.lastName,
+    //     userFirstName: user.firstName,
+    //     userLogo: user.photo?.path || null,
+    //     userMessage: messageEntity.message,
+    //     messageReaded: false,
+    //   }),
+    // );
+
+    return messageEntity;
   }
 
   async updateDialogMessage(

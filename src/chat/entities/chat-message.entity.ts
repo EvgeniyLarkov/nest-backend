@@ -17,9 +17,11 @@ import { ChatDialogEntity } from './chat-dialog.entity';
 import { BeforeInsert } from 'typeorm';
 import getShortId from 'src/utils/short-id-generator';
 import { User } from 'src/users/entities/user.entity';
+import { Exclude } from 'class-transformer';
 
 @Entity({ name: 'chat-message' })
 export class ChatMessageEntity extends EntityHelper {
+  @Exclude({ toPlainOnly: true })
   @PrimaryGeneratedColumn()
   id: number;
 

@@ -25,6 +25,7 @@ import { Status } from '../../statuses/entities/status.entity';
 
 @Entity('user')
 export class User extends EntityHelper {
+  @Exclude({ toPlainOnly: true })
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -88,6 +89,7 @@ export class User extends EntityHelper {
   @Index()
   hash: string;
 
+  @Exclude({ toPlainOnly: true })
   @Column({ nullable: true })
   @Index()
   mailHash: string | null;

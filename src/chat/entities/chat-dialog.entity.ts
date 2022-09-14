@@ -9,24 +9,29 @@ import {
   JoinTable,
   ManyToMany,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
-import { ApiProperty } from '@nestjs/swagger';
 import { ChatMessageEntity } from './chat-message.entity';
 import { User } from 'src/users/entities/user.entity';
 import getShortId from 'src/utils/short-id-generator';
+import { ChatLastEntity } from './chat-last.entity';
+import { Exclude } from 'class-transformer';
 
 @Entity({ name: 'chat-dialog' })
 export class ChatDialogEntity extends EntityHelper {
+  @Exclude({ toPlainOnly: true })
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ApiProperty({ example: 'cbcfa8b8-3a25-4adb-a9c6-e325f0d0f3ae' })
   @Column({ default: getShortId() })
   @Index()
   uuid: string;
+
+  @Column({ default: 'New dialog' })
+  name: string;
 
   @ManyToMany(() => User, (user) => user.dialogs, {
     eager: true,
@@ -36,6 +41,9 @@ export class ChatDialogEntity extends EntityHelper {
 
   @OneToMany(() => ChatMessageEntity, (message) => message.dialog)
   messages: ChatMessageEntity[];
+
+  @OneToOne(() => ChatLastEntity, (last) => last.dialog)
+  last: Promise<ChatLastEntity | null>;
 
   @CreateDateColumn()
   createdAt: Date;

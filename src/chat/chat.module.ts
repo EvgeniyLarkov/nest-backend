@@ -7,11 +7,16 @@ import { ChatController } from './chat.controller';
 import { ChatGateway } from './chat.gateway';
 import { ChatService } from './chat.service';
 import { ChatDialogEntity } from './entities/chat-dialog.entity';
+import { ChatLastEntity } from './entities/chat-last.entity';
 import { ChatMessageEntity } from './entities/chat-message.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ChatMessageEntity, ChatDialogEntity]),
+    TypeOrmModule.forFeature([
+      ChatMessageEntity,
+      ChatDialogEntity,
+      ChatLastEntity,
+    ]),
     UsersModule,
     ConfigModule,
     JwtModule.registerAsync({

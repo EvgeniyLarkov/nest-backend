@@ -65,7 +65,11 @@ export class ChatController {
   ) {
     const user = req.user.hash as Pick<User, 'hash'>;
 
-    return this.chatService.getDialogs({ page, limit, userHash: user });
+    return this.chatService.getLastDialogsWithPagination({
+      page,
+      limit,
+      userHash: user,
+    });
   }
 
   @Get(':uuid')
