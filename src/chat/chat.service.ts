@@ -1,8 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { WsException } from '@nestjs/websockets';
-import { Socket } from 'socket.io';
 import { UserHash } from 'src/users/helpers/user-types';
 import { UsersService } from 'src/users/users.service';
 import { IPaginationOptions } from 'src/utils/types/pagination-options';
@@ -25,7 +22,6 @@ export class ChatService {
     private chatMessagesRepository: Repository<ChatMessageEntity>,
     @InjectRepository(ChatLastEntity)
     private chatLastRepository: Repository<ChatLastEntity>,
-    private jwtService: JwtService,
     private usersService: UsersService,
   ) {}
 
@@ -303,32 +299,5 @@ export class ChatService {
     }
 
     return await this.chatMessagesRepository.softDelete({ uuid }); // TO-DO Response
-  }
-
-  async handleConnection(client: Socket) {
-    const token = client.handshake.headers.authorization;
-
-    if (!token) {
-      throw new WsException({
-        status: HttpStatus.UNAUTHORIZED,
-      });
-    }
-
-    const payload = this.jwtService.verify(
-      client.handshake.headers.authorization,
-    );
-
-    const user = await this.usersService.findOne({ id: payload.id });
-
-    if (!user) {
-      new HttpException(
-        {
-          status: HttpStatus.UNAUTHORIZED,
-        },
-        HttpStatus.UNAUTHORIZED,
-      );
-    }
-
-    return user;
   }
 }

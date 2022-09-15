@@ -30,7 +30,7 @@ import { ChatMessageEntity } from './entities/chat-message.entity';
       }),
     }),
   ],
-  providers: [ChatGateway, ChatService],
+  providers: [ChatService, ChatGateway],
   controllers: [ChatController],
 })
 export class ChatModule {}
