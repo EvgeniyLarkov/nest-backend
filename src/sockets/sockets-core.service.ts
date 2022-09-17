@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { WsException } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
@@ -30,6 +30,7 @@ export class SocketCoreService {
     }
 
     connections.forEach((socket) => {
+      console.log(event, message);
       socket.emit(event, message);
     });
   }
@@ -51,15 +52,12 @@ export class SocketCoreService {
       const user = await this.usersService.findOne({ id: payload.id });
 
       if (!user) {
-        new HttpException(
-          {
-            status: HttpStatus.UNAUTHORIZED,
-          },
-          HttpStatus.UNAUTHORIZED,
-        );
+        new WsException({
+          status: HttpStatus.UNAUTHORIZED,
+        });
       }
 
-      this.socketService.add(user.hash, client);
+      return this.socketService.add(user.hash, client);
     } catch (err) {
       client.emit('unathorized', {
         error: err,

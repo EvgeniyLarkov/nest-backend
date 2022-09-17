@@ -22,7 +22,6 @@ import { infinityPagination } from 'src/utils/infinity-pagination';
 import { DialogCreateDto } from './dto/dialog-create.dto';
 import { ChatService } from './chat.service';
 import { ChatDialogEntity } from './entities/chat-dialog.entity';
-import { User } from 'src/users/entities/user.entity';
 import { UserHash } from 'src/users/helpers/user-types';
 import { MessagePostDto } from './dto/message-post.dto';
 import { ChatMessageEntity } from './entities/chat-message.entity';
@@ -45,7 +44,7 @@ export class ChatController {
     @Request() req,
     @Body() createDialogDto: { reciever: DialogCreateDto['reciever'] },
   ) {
-    const userHash = req.user.hash as Pick<User, 'hash'>;
+    const userHash = req.user.hash;
     const { reciever } = createDialogDto;
 
     const data = <DialogCreateDto & UserHash>{
@@ -63,7 +62,7 @@ export class ChatController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
   ) {
-    const user = req.user.hash as Pick<User, 'hash'>;
+    const user = req.user.hash;
 
     return this.chatService.getLastDialogsWithPagination({
       page,
@@ -75,7 +74,7 @@ export class ChatController {
   @Get(':uuid')
   @HttpCode(HttpStatus.OK)
   getDialog(@Request() req, @Param('uuid') uuid: ChatDialogEntity['uuid']) {
-    const userHash = req.user.hash as Pick<User, 'hash'>;
+    const userHash = req.user.hash;
 
     return this.chatService.getDialog({
       userHash,
@@ -90,7 +89,7 @@ export class ChatController {
     @Param('uuid') uuid: ChatDialogEntity['uuid'],
     @Body() data: MessagePostDto,
   ) {
-    const userHash = req.user.hash as Pick<User, 'hash'>;
+    const userHash = req.user.hash;
 
     return this.chatService.createMessage({
       userHash,
@@ -107,7 +106,7 @@ export class ChatController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit: number,
   ) {
-    const userHash = req.user.hash as Pick<User, 'hash'>;
+    const userHash = req.user.hash;
 
     if (limit > 50) {
       limit = 50;
@@ -130,7 +129,7 @@ export class ChatController {
     @Request() req,
     @Param('uuid') uuid: ChatMessageEntity['uuid'],
   ) {
-    const userHash = req.user.hash as Pick<User, 'hash'>;
+    const userHash = req.user.hash;
 
     return await this.chatService.getDialogMessage({
       uuid,
@@ -145,7 +144,7 @@ export class ChatController {
     @Param('uuid') uuid: ChatMessageEntity['uuid'],
     @Body() data: MessageUpdateDto,
   ) {
-    const userHash = req.user.hash as Pick<User, 'hash'>;
+    const userHash = req.user.hash;
 
     return await this.chatService.updateDialogMessage({
       uuid,
@@ -160,7 +159,7 @@ export class ChatController {
     @Request() req,
     @Param('uuid') uuid: ChatMessageEntity['uuid'],
   ) {
-    const userHash = req.user.hash as Pick<User, 'hash'>;
+    const userHash = req.user.hash;
 
     return await this.chatService.dropDialogMessage({
       uuid,

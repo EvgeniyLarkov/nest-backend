@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { SocketModule } from 'src/sockets/sockets.module';
 import { UsersModule } from 'src/users/users.module';
 import { ChatController } from './chat.controller';
 import { ChatGateway } from './chat.gateway';
@@ -19,6 +20,7 @@ import { ChatMessageEntity } from './entities/chat-message.entity';
     ]),
     UsersModule,
     ConfigModule,
+    SocketModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

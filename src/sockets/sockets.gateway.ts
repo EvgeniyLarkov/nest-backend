@@ -9,13 +9,9 @@ import {
 import { SocketStateService } from './sockets-state.service';
 import { SocketCoreService } from './sockets-core.service';
 
-enum ResponseEvents {
-  chatMessage = 'chat-message',
-}
-
 interface IWsResponseData<T> {
   message: T;
-  event: ResponseEvents;
+  event: string;
   userHash: string;
 }
 
@@ -31,19 +27,19 @@ export class SocketsGateway
   server: Server;
 
   constructor(
-    private readonly socketService: SocketStateService,
-    private readonly socketCoreService: SocketCoreService,
+    readonly socketService: SocketStateService,
+    readonly socketCoreService: SocketCoreService,
   ) {}
 
   public sendMessage<T>(data: IWsResponseData<T>) {
-    this.socketCoreService.sendMessage(data);
+    return this.socketCoreService.sendMessage(data);
   }
 
   async handleConnection(client: Socket) {
-    await this.socketCoreService.handleConnection(client);
+    return await this.socketCoreService.handleConnection(client);
   }
 
   handleDisconnect(client: Socket) {
-    this.socketCoreService.handleDisconnect(client);
+    return this.socketCoreService.handleDisconnect(client);
   }
 }
