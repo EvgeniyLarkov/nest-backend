@@ -130,6 +130,7 @@ export class ChatService {
       where: {
         dialog: dialog.id,
       },
+      relations: ['sender'],
       skip: (page - 1) * limit,
       take: limit,
       order: {
