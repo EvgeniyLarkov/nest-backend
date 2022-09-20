@@ -242,7 +242,7 @@ export class ChatService {
     //   }),
     // );
 
-    return messageEntity;
+    return [messageEntity, dialogEntity] as const;
   }
 
   async updateDialogMessage(

@@ -4,12 +4,13 @@ import { WsException } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
 import { User } from 'src/users/entities/user.entity';
 import { UsersService } from 'src/users/users.service';
+import serializeResponse from 'src/utils/ws-response-serializer';
 import { SocketStateService } from './sockets-state.service';
 
-interface IWsResponseData<T> {
+export interface IWsResponseData<T> {
   message: T;
   event: string;
-  userHash: User['hash'];
+  userHash: User['hash'] | User['hash'][];
 }
 
 @Injectable()
@@ -20,18 +21,21 @@ export class SocketCoreService {
     private readonly jwtService: JwtService,
   ) {}
 
-  public sendMessage<T>(data: IWsResponseData<T>) {
+  public sendMessage<T>(data: IWsResponseData<T>): void {
     const { message, userHash, event } = data;
 
-    const connections = this.socketService.get(userHash);
+    const users = typeof userHash === 'string' ? [userHash] : userHash;
 
-    if (!connections) {
-      return null;
-    }
+    users.forEach((user) => {
+      const connections = this.socketService.get(user);
 
-    connections.forEach((socket) => {
-      console.log(event, message);
-      socket.emit(event, message);
+      if (!connections) {
+        return null;
+      }
+
+      connections.forEach((socket) => {
+        socket.emit(event, serializeResponse(message));
+      });
     });
   }
 

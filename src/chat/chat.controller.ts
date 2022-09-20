@@ -84,18 +84,20 @@ export class ChatController {
 
   @Post(':uuid')
   @HttpCode(HttpStatus.CREATED)
-  postMessage(
+  async postMessage(
     @Request() req,
     @Param('uuid') uuid: ChatDialogEntity['uuid'],
     @Body() data: MessagePostDto,
   ) {
     const userHash = req.user.hash;
 
-    return this.chatService.createMessage({
+    const [message] = await this.chatService.createMessage({
       userHash,
       uuid,
       ...data,
     });
+
+    return message;
   }
 
   @Get(':uuid/messages')

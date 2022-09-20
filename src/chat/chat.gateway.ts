@@ -11,6 +11,7 @@ import { Socket } from 'socket.io';
 import { SocketCoreService } from 'src/sockets/sockets-core.service';
 import { SocketStateService } from 'src/sockets/sockets-state.service';
 import { SocketsGateway } from 'src/sockets/sockets.gateway';
+import extractRecievers from 'src/utils/extractRecievers';
 import { ChatService } from './chat.service';
 import { MessageGetDto } from './dto/message-get.dto';
 import { MessagePostDto } from './dto/message-post.dto';
@@ -44,12 +45,18 @@ export class ChatGateway extends SocketsGateway {
   ): Promise<WsResponse<ChatMessageEntity>> {
     const userHash = this.socketService.getUserBySocketId(client.id);
 
-    const msg = await this.chatService.createMessage({
+    const [message, dialog] = await this.chatService.createMessage({
       userHash,
       ...data,
     });
 
-    return { event: 'message', data: msg };
+    this.sendMessage({
+      message,
+      event: 'message',
+      userHash: extractRecievers(dialog.participants),
+    });
+
+    return { event: 'message', data: message };
   }
 
   @SubscribeMessage('read-message')

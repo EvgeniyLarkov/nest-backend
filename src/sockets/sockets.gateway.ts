@@ -7,16 +7,10 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { SocketStateService } from './sockets-state.service';
-import { SocketCoreService } from './sockets-core.service';
+import { IWsResponseData, SocketCoreService } from './sockets-core.service';
 // import { HttpToWsInterceptor } from './http-to-ws-exception.interceptor';
 import { UseFilters } from '@nestjs/common';
 import { WebsocketExceptionsFilter } from './ws-exceptions.filter';
-
-interface IWsResponseData<T> {
-  message: T;
-  event: string;
-  userHash: string;
-}
 
 @WebSocketGateway({
   cors: {
