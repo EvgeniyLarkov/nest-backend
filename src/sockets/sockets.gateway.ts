@@ -8,6 +8,9 @@ import {
 } from '@nestjs/websockets';
 import { SocketStateService } from './sockets-state.service';
 import { SocketCoreService } from './sockets-core.service';
+// import { HttpToWsInterceptor } from './http-to-ws-exception.interceptor';
+import { UseFilters } from '@nestjs/common';
+import { WebsocketExceptionsFilter } from './ws-exceptions.filter';
 
 interface IWsResponseData<T> {
   message: T;
@@ -20,6 +23,7 @@ interface IWsResponseData<T> {
     origin: '*',
   },
 })
+@UseFilters(WebsocketExceptionsFilter)
 export class SocketsGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {

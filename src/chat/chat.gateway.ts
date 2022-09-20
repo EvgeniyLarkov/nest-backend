@@ -12,6 +12,7 @@ import { SocketCoreService } from 'src/sockets/sockets-core.service';
 import { SocketStateService } from 'src/sockets/sockets-state.service';
 import { SocketsGateway } from 'src/sockets/sockets.gateway';
 import { ChatService } from './chat.service';
+import { MessageGetDto } from './dto/message-get.dto';
 import { MessagePostDto } from './dto/message-post.dto';
 import { ChatDialogEntity } from './entities/chat-dialog.entity';
 import { ChatMessageEntity } from './entities/chat-message.entity';
@@ -23,6 +24,7 @@ import { ChatMessageEntity } from './entities/chat-message.entity';
   },
   namespace: 'chat',
 })
+@UseInterceptors(ClassSerializerInterceptor)
 export class ChatGateway extends SocketsGateway {
   constructor(
     readonly chatService: ChatService,
@@ -35,7 +37,6 @@ export class ChatGateway extends SocketsGateway {
     this.socketService;
   }
 
-  @UseInterceptors(ClassSerializerInterceptor)
   @SubscribeMessage('message')
   async handleNewMessage(
     @MessageBody() data: MessagePostDto & Pick<ChatDialogEntity, 'uuid'>,
@@ -49,5 +50,20 @@ export class ChatGateway extends SocketsGateway {
     });
 
     return { event: 'message', data: msg };
+  }
+
+  @SubscribeMessage('read-message')
+  async readMessage(
+    @MessageBody() data: MessageGetDto,
+    @ConnectedSocket() client: Socket,
+  ): Promise<WsResponse<ChatMessageEntity>> {
+    const userHash = this.socketService.getUserBySocketId(client.id);
+
+    const msg = await this.chatService.makeChatMessageReaded({
+      userHash,
+      ...data,
+    });
+
+    return { event: 'read-message', data: msg };
   }
 }

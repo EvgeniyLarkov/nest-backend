@@ -47,6 +47,9 @@ export class ChatMessageEntity extends EntityHelper {
   @Index()
   dialog: ChatDialogEntity;
 
+  @Column({ default: false })
+  readed: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 

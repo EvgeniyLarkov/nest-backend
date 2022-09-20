@@ -301,4 +301,39 @@ export class ChatService {
 
     return await this.chatMessagesRepository.softDelete({ uuid }); // TO-DO Response
   }
+
+  async makeChatMessageReaded(data: MessageGetDto & UserHash) {
+    const { uuid, userHash } = data;
+
+    const message = await this.chatMessagesRepository
+      .createQueryBuilder('cm')
+      .innerJoin('cm.dialog', 'dialog')
+      .innerJoin('cm.sender', 'sender')
+      .innerJoin('dialog.participants', 'dp')
+      .where('cm.uuid=:uuid', { uuid })
+      .andWhere('dp.hash = :userHash', { userHash })
+      .andWhere('cm.readed = :readed', { readed: false })
+      .andWhere('sender.hash != :hash', { hash: userHash })
+      .getOne();
+
+    if (!message) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    return (await this.chatMessagesRepository
+      .createQueryBuilder()
+      .update({
+        readed: true,
+      })
+      .where({
+        id: message.id,
+      })
+      .returning('*')
+      .execute()) as unknown as ChatMessageEntity;
+  }
 }
