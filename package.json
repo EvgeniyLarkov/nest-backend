@@ -32,7 +32,9 @@
     "test:e2e": "env-cmd jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@discord-nestjs/core": "^4.3.1",
     "@nestjs-modules/mailer": "1.6.1",
+    "@nestjs/axios": "^1.0.0",
     "@nestjs/common": "8.4.5",
     "@nestjs/config": "2.0.0",
     "@nestjs/core": "8.4.5",
@@ -45,8 +47,11 @@
     "@nestjs/websockets": "^9.0.9",
     "apple-signin-auth": "1.5.1",
     "bcryptjs": "2.4.3",
+    "cache-manager": "^4.0.0",
     "class-transformer": "0.5.1",
     "class-validator": "0.13.2",
+    "discord.js": "^14.7.1",
+    "fast-memoize": "^2.5.2",
     "fb": "2.0.0",
     "google-auth-library": "8.0.1",
     "handlebars": "4.7.7",
@@ -58,6 +63,7 @@
     "passport-anonymous": "1.0.1",
     "passport-jwt": "4.0.0",
     "pg": "8.7.3",
+    "puppeteer": "^19.4.0",
     "reflect-metadata": "0.1.13",
     "rimraf": "3.0.2",
     "rxjs": "7.5.5",
@@ -70,7 +76,7 @@
     "typeorm-transactional-cls-hooked": "^0.1.21"
   },
   "devDependencies": {
-    "@nestjs/cli": "8.2.6",
+    "@nestjs/cli": "^8.2.6",
     "@nestjs/schematics": "8.0.11",
     "@nestjs/testing": "8.4.5",
     "@types/bcryptjs": "2.4.2",

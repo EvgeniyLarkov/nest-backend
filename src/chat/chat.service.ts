@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UserHash } from 'src/users/helpers/user-types';
 import { UsersService } from 'src/users/users.service';
 import { IPaginationOptions } from 'src/utils/types/pagination-options';
-import { Repository } from 'typeorm';
+import { Repository, UpdateResult } from 'typeorm';
 import { DialogCreateDto } from './dto/dialog-create.dto';
 import { MessagesGetDto } from './dto/messages-get.dto';
 import { MessagePostDto } from './dto/message-post.dto';
@@ -25,15 +25,20 @@ export class ChatService {
     private usersService: UsersService,
   ) {}
 
-  getDialog(data: { uuid: ChatDialogEntity['uuid'] } & UserHash) {
-    const { uuid, userHash } = data;
+  async getDialog(data: { uuid: ChatDialogEntity['uuid'] }) {
+    const { uuid } = data;
 
-    return this.chatDialogsRepository
-      .createQueryBuilder('ct')
-      .innerJoin('ct.participants', 'p')
-      .where('p.hash = :userHash', { userHash })
-      .andWhere('ct.uuid = :uuid', { uuid })
-      .getOne();
+    const dialog = await this.chatDialogsRepository.findOne({ uuid });
+
+    return dialog;
+  }
+
+  async getDialogById(data: { id: ChatDialogEntity['id'] }) {
+    const { id } = data;
+
+    const dialog = await this.chatDialogsRepository.findOne({ id });
+
+    return dialog;
   }
 
   async createDialog(data: DialogCreateDto & UserHash) {
@@ -93,6 +98,10 @@ export class ChatService {
 
     const dialogIds = dialogs.map((dialog) => dialog.id);
 
+    if (dialogIds.length === 0) {
+      return [];
+    }
+
     return await this.chatDialogsRepository
       .createQueryBuilder('cd')
       .leftJoinAndSelect('cd.participants', 'p')
@@ -143,15 +152,20 @@ export class ChatService {
     // Need To Check
     const { uuid, userHash } = data;
 
-    const message = await this.chatMessagesRepository
-      .createQueryBuilder('cm')
-      .innerJoin('cm.dialog', 'dialog')
-      .innerJoin('dialog.participants', 'dp')
-      .where('cm.uuid=:uuid', { uuid })
-      .andWhere('dp.hash = :userHash', { userHash })
-      .getOne();
+    const message = await this.chatMessagesRepository.findOne(
+      { uuid },
+      { relations: ['sender', 'dialog'] },
+    );
 
-    if (message) {
+    // const message = await this.chatMessagesRepository
+    //   .createQueryBuilder('cm')
+    //   .innerJoin('cm.dialog', 'dialog')
+    //   .innerJoin('dialog.participants', 'dp')
+    //   .where('cm.uuid=:uuid', { uuid })
+    //   .andWhere('dp.hash = :userHash', { userHash })
+    //   .getOne();
+
+    if (message && message.sender?.hash === userHash) {
       return message;
     } else {
       throw new HttpException(
@@ -170,7 +184,6 @@ export class ChatService {
 
     const dialogEntity = await this.getDialog({
       uuid,
-      userHash,
     });
 
     if (!dialogEntity) {
@@ -188,6 +201,18 @@ export class ChatService {
     const user = await this.usersService.findOne({
       hash: userHash,
     });
+
+    if (!user) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          errors: {
+            dialog: 'userNotExist',
+          },
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
     const messageEntity = await this.chatMessagesRepository.save(
       this.chatMessagesRepository.create({
@@ -312,7 +337,7 @@ export class ChatService {
       .innerJoin('dialog.participants', 'dp')
       .where('cm.uuid=:uuid', { uuid })
       .andWhere('dp.hash = :userHash', { userHash })
-      .andWhere('cm.readed = :readed', { readed: false })
+      // .andWhere('cm.readed = :readed', { readed: false })
       .andWhere('sender.hash != :hash', { hash: userHash })
       .getOne();
 
@@ -327,6 +352,7 @@ export class ChatService {
 
     return (await this.chatMessagesRepository
       .createQueryBuilder()
+      .relation('dialog')
       .update({
         readed: true,
       })
@@ -334,6 +360,6 @@ export class ChatService {
         id: message.id,
       })
       .returning('*')
-      .execute()) as unknown as ChatMessageEntity;
+      .execute()) as UpdateResult & { dialogId: number };
   }
 }

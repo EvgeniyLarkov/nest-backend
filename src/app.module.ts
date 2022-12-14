@@ -1,6 +1,5 @@
-import { Module } from '@nestjs/common';
+import { Module, CacheModule } from '@nestjs/common';
 import { UsersModule } from './users/users.module';
-// import { FilesModule } from './files/files.module';
 import { AuthModule } from './auth/auth.module';
 import databaseConfig from './config/database.config';
 import authConfig from './config/auth.config';
@@ -28,6 +27,11 @@ import { ForgotModule } from './forgot/forgot.module';
 import { MailModule } from './mail/mail.module';
 import { HomeModule } from './home/home.module';
 import { ChatModule } from './chat/chat.module';
+import { FilesModule } from './files/files.module';
+import { AiModule } from './ai/ai.module';
+import aiConfig from './config/ai.config';
+import discordConfig from './config/discord.config';
+import { PhotoGeneratorModule } from './photo-generator/photo-generator.module';
 
 @Module({
   imports: [
@@ -43,8 +47,13 @@ import { ChatModule } from './chat/chat.module';
         googleConfig,
         twitterConfig,
         appleConfig,
+        aiConfig,
+        discordConfig,
       ],
       envFilePath: ['.env'],
+    }),
+    CacheModule.register({
+      isGlobal: true,
     }),
     TypeOrmModule.forRootAsync({
       useClass: TypeOrmConfigService,
@@ -69,7 +78,7 @@ import { ChatModule } from './chat/chat.module';
       resolvers: [new HeaderResolver(['x-custom-lang'])],
     }),
     UsersModule,
-    // FilesModule,
+    FilesModule,
     AuthModule,
     AuthFacebookModule,
     AuthGoogleModule,
@@ -79,6 +88,8 @@ import { ChatModule } from './chat/chat.module';
     MailModule,
     HomeModule,
     ChatModule,
+    AiModule,
+    PhotoGeneratorModule,
   ],
 })
 export class AppModule {}

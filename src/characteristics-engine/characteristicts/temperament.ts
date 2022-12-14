@@ -1,0 +1,27 @@
+import { IProbability } from './probability';
+
+export const AITemperament = {
+  Calming: IProbability['high'],
+  Cheerful: IProbability['high'],
+  Easygoing: IProbability['high'],
+  Relaxed: IProbability['low'],
+  Amiable: IProbability['low'],
+  'Good-natured': IProbability['standart'],
+  'Life-tired': IProbability['standart'],
+  Aggressive: IProbability['low'],
+  Agreeable: IProbability['standart'],
+  Sympathetic: IProbability['standart'],
+  Frinedly: IProbability['standart'],
+  Emotional: IProbability['standart'],
+  Moody: IProbability['very-low'],
+  Irritable: IProbability['very-low'],
+  Combative: IProbability['very-low'],
+  Intolerant: IProbability['very-low'],
+  Uncooperative: IProbability['very-low'],
+  Unfriendly: IProbability['very-low'],
+  Unsympathetic: IProbability['very-low'],
+  Ingratiating: IProbability['very-low'],
+  Insincere: IProbability['very-low'],
+  Shallow: IProbability['very-low'],
+  Unemotional: IProbability['very-low'],
+};

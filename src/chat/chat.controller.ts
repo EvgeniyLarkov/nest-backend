@@ -74,10 +74,9 @@ export class ChatController {
   @Get(':uuid')
   @HttpCode(HttpStatus.OK)
   getDialog(@Request() req, @Param('uuid') uuid: ChatDialogEntity['uuid']) {
-    const userHash = req.user.hash;
+    // const userHash = req.user.hash;
 
     return this.chatService.getDialog({
-      userHash,
       uuid,
     });
   }

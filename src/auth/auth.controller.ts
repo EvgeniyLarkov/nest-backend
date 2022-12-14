@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { FileEntityPipe } from 'src/utils/pipes/get-if-exist.pipe';
 
 import { AuthService } from './auth.service';
 import { AuthConfirmEmailDto } from './dto/auth-confirm-email.dto';
@@ -20,6 +21,7 @@ import { AuthForgotPasswordDto } from './dto/auth-forgot-password.dto';
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { AuthResetPasswordDto } from './dto/auth-reset-password.dto';
 import { AuthUpdateDto } from './dto/auth-update.dto';
+import { IRequestUser } from './types/user';
 
 @ApiTags('Auth')
 @Controller({
@@ -72,7 +74,7 @@ export class AuthController {
   @Get('me')
   @UseGuards(AuthGuard('jwt'))
   @HttpCode(HttpStatus.OK)
-  public async me(@Request() request) {
+  public async me(@Request() request: IRequestUser) {
     return this.service.me(request.user);
   }
 
@@ -80,7 +82,10 @@ export class AuthController {
   @Patch('me')
   @UseGuards(AuthGuard('jwt'))
   @HttpCode(HttpStatus.OK)
-  public async update(@Request() request, @Body() userDto: AuthUpdateDto) {
+  public async update(
+    @Request() request: IRequestUser,
+    @Body(FileEntityPipe('photo')) userDto: AuthUpdateDto,
+  ) {
     return this.service.update(request.user, userDto);
   }
 
@@ -88,7 +93,7 @@ export class AuthController {
   @Delete('me')
   @UseGuards(AuthGuard('jwt'))
   @HttpCode(HttpStatus.OK)
-  public async delete(@Request() request) {
+  public async delete(@Request() request: IRequestUser) {
     return this.service.softDelete(request.user);
   }
 }

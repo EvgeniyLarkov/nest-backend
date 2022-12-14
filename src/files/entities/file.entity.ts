@@ -4,6 +4,7 @@ import {
   PrimaryGeneratedColumn,
   AfterLoad,
   AfterInsert,
+  ManyToOne,
   Index,
   Generated,
 } from 'typeorm';
@@ -11,6 +12,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Allow } from 'class-validator';
 import { EntityHelper } from 'src/utils/entity-helper';
 import appConfig from '../../config/app.config';
+import { User } from 'src/users/entities/user.entity';
 
 @Entity({ name: 'file' })
 export class FileEntity extends EntityHelper {
@@ -26,6 +28,9 @@ export class FileEntity extends EntityHelper {
   @Allow()
   @Column()
   path: string;
+
+  @ManyToOne(() => User)
+  user?: User;
 
   @AfterLoad()
   @AfterInsert()

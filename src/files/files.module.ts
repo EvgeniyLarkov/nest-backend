@@ -9,9 +9,14 @@ import * as multerS3 from 'multer-s3';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { FileEntity } from './entities/file.entity';
 import { FilesService } from './files.service';
+import { ConfigurationOptions } from 'aws-sdk';
+import { ConfigurationServicePlaceholders } from 'aws-sdk/lib/config_service_placeholders';
+import { APIVersions } from 'aws-sdk/lib/config';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
   imports: [
+    UsersModule,
     TypeOrmModule.forFeature([FileEntity]),
     MulterModule.registerAsync({
       imports: [ConfigModule],
@@ -32,12 +37,20 @@ import { FilesService } from './files.service';
               },
             }),
           s3: () => {
-            const s3 = new AWS.S3();
-            AWS.config.update({
-              accessKeyId: configService.get('file.accessKeyId'),
-              secretAccessKey: configService.get('file.secretAccessKey'),
+            const AWSconfig: ConfigurationOptions &
+              ConfigurationServicePlaceholders &
+              APIVersions = {
+              credentials: {
+                accessKeyId: configService.get('file.accessKeyId'),
+                secretAccessKey: configService.get('file.secretAccessKey'),
+              },
+              apiVersion: 'latest',
               region: configService.get('file.awsS3Region'),
-            });
+            };
+
+            // AWS.config.update(AWSconfig);
+
+            const s3 = new AWS.S3(AWSconfig);
 
             return multerS3({
               s3: s3,
@@ -86,5 +99,6 @@ import { FilesService } from './files.service';
   ],
   controllers: [FilesController],
   providers: [ConfigModule, ConfigService, FilesService],
+  exports: [FilesService],
 })
 export class FilesModule {}

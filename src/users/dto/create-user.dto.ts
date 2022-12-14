@@ -29,6 +29,8 @@ export class CreateUserDto {
 
   provider?: string;
 
+  description?: string;
+
   socialId?: string | null;
 
   @ApiProperty({ example: 'John' })
