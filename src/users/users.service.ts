@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityCondition } from 'src/utils/types/entity-condition.type';
+import { FindOptionsWhere } from 'typeorm/find-options/FindOptionsWhere';
 import { IPaginationOptions } from 'src/utils/types/pagination-options';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -27,7 +27,7 @@ export class UsersService {
     });
   }
 
-  findOne(fields: EntityCondition<User>) {
+  findOne(fields: FindOptionsWhere<User>) {
     return this.usersRepository.findOne({
       where: fields,
     });
@@ -37,7 +37,7 @@ export class UsersService {
     const { page, limit, userId } = data;
 
     return this.usersRepository.find({
-      where: { dialogs: userId },
+      where: { dialogs: { id: userId } },
       skip: (page - 1) * limit,
       take: limit,
     });

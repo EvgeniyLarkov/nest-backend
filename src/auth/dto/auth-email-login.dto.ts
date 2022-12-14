@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, Validate } from 'class-validator';
-import { IsExist } from 'src/utils/validators/is-exists.validator';
+import { IsExist } from 'src/shared/validators/is-exists.validator';
 import { Transform } from 'class-transformer';
 
 export class AuthEmailLoginDto {

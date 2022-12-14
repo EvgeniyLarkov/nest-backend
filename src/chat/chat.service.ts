@@ -28,7 +28,9 @@ export class ChatService {
   async getDialog(data: { uuid: ChatDialogEntity['uuid'] }) {
     const { uuid } = data;
 
-    const dialog = await this.chatDialogsRepository.findOne({ uuid });
+    const dialog = await this.chatDialogsRepository.findOne({
+      where: { uuid },
+    });
 
     return dialog;
   }
@@ -36,7 +38,7 @@ export class ChatService {
   async getDialogById(data: { id: ChatDialogEntity['id'] }) {
     const { id } = data;
 
-    const dialog = await this.chatDialogsRepository.findOne({ id });
+    const dialog = await this.chatDialogsRepository.findOne({ where: { id } });
 
     return dialog;
   }
@@ -46,7 +48,9 @@ export class ChatService {
 
     const initiator = userHash;
 
-    const recieverEntity = await this.usersService.findOne({ hash: reciever });
+    const recieverEntity = await this.usersService.findOne({
+      hash: reciever,
+    });
     const initiatorEntity = await this.usersService.findOne({
       hash: initiator,
     });
@@ -137,9 +141,14 @@ export class ChatService {
 
     return this.chatMessagesRepository.find({
       where: {
-        dialog: dialog.id,
+        dialog: {
+          id: dialog.id,
+        },
       },
-      relations: ['sender'],
+      relations: {
+        sender: true,
+        dialog: true,
+      },
       skip: (page - 1) * limit,
       take: limit,
       order: {
@@ -152,10 +161,10 @@ export class ChatService {
     // Need To Check
     const { uuid, userHash } = data;
 
-    const message = await this.chatMessagesRepository.findOne(
-      { uuid },
-      { relations: ['sender', 'dialog'] },
-    );
+    const message = await this.chatMessagesRepository.findOne({
+      where: { uuid },
+      relations: ['sender', 'dialog'],
+    });
 
     // const message = await this.chatMessagesRepository
     //   .createQueryBuilder('cm')

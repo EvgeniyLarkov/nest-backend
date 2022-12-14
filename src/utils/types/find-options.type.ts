@@ -1,5 +1,5 @@
-import { EntityCondition } from './entity-condition.type';
+import { FindOptionsWhere } from 'typeorm/find-options/FindOptionsWhere';
 
 export type FindOptions<T> = {
-  where: EntityCondition<T>;
+  where: FindOptionsWhere<T>;
 };

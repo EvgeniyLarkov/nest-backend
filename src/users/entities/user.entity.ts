@@ -38,11 +38,13 @@ export class User extends EntityHelper {
 
   public previousPassword: string;
 
+  @Exclude()
   @AfterLoad()
   public loadPreviousPassword(): void {
     this.previousPassword = this.password;
   }
 
+  @Exclude()
   @BeforeInsert()
   @BeforeUpdate()
   async setPassword() {
@@ -106,6 +108,7 @@ export class User extends EntityHelper {
   @DeleteDateColumn()
   deletedAt: Date;
 
+  @Exclude()
   @BeforeInsert()
   uuidUpdater() {
     this.hash = getShortId();

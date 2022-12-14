@@ -1,5 +1,6 @@
+import { FindOperator } from 'typeorm';
 import { DeepPartial } from './deep-partial.type';
 
-export type EntityCondition<T> = {
-  [key in keyof DeepPartial<T>]: number | string | EntityCondition<T>;
+export type OldFindOptionsWhere<T> = {
+  [key in keyof DeepPartial<T>]: T[key] | FindOperator<T[key]>;
 };

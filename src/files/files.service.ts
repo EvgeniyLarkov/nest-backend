@@ -5,7 +5,7 @@ import { FileEntity } from './entities/file.entity';
 import { Repository } from 'typeorm';
 import { FileUploadReq } from './types/file';
 import { User } from 'src/users/entities/user.entity';
-import { EntityCondition } from 'src/utils/types/entity-condition.type';
+import { FindOptionsWhere } from 'typeorm/find-options/FindOptionsWhere';
 
 @Injectable()
 export class FilesService {
@@ -15,7 +15,7 @@ export class FilesService {
     private fileRepository: Repository<FileEntity>,
   ) {}
 
-  findOne(fields: EntityCondition<FileEntity>) {
+  findOne(fields: FindOptionsWhere<FileEntity>) {
     return this.fileRepository.findOne({
       where: fields,
       relations: ['user'],

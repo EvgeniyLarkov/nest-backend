@@ -2,7 +2,9 @@ import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { useContainer } from 'class-validator';
 import { AppModule } from './app.module';
+import { SharedModule } from './shared/shared.module';
 import { SerializerInterceptor } from './utils/serializer.interceptor';
 import validationOptions from './utils/validation-options';
 
@@ -29,6 +31,8 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup('docs', app, document);
+
+  useContainer(app.select(SharedModule), { fallbackOnErrors: true });
 
   await app.listen(configService.get('app.port'));
 }

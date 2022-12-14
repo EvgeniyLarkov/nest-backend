@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { FileEntityPipe } from 'src/utils/pipes/get-if-exist.pipe';
+import { FileEntityPipe } from 'src/shared/pipes/get-if-exist.pipe';
 
 import { AuthService } from './auth.service';
 import { AuthConfirmEmailDto } from './dto/auth-confirm-email.dto';

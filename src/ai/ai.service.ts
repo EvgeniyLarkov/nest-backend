@@ -10,10 +10,10 @@ import { RoleEnum } from 'src/roles/roles.enum';
 import { Role } from 'src/roles/entities/role.entity';
 import { Status } from 'src/statuses/entities/status.entity';
 import { StatusEnum } from 'src/statuses/statuses.enum';
-import { EntityCondition } from 'src/utils/types/entity-condition.type';
 import { IPaginationOptions } from 'src/utils/types/pagination-options';
 import { CreateCharacterDto } from './dto/create-character.dto';
 import { UpdateCharacterDto } from './dto/update-character.dto';
+import { FindOptionsWhere } from 'typeorm/find-options/FindOptionsWhere';
 
 @Injectable()
 export class AiService {
@@ -92,7 +92,7 @@ export class AiService {
     return this.findOne({ hash });
   }
 
-  findOne(fields: EntityCondition<Character>) {
+  findOne(fields: FindOptionsWhere<Character>) {
     return this.characterRepository.findOne({
       where: fields,
     });

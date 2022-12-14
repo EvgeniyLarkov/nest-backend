@@ -6,8 +6,11 @@ import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm';
 export class TypeOrmConfigService implements TypeOrmOptionsFactory {
   constructor(private configService: ConfigService) {}
 
-  createTypeOrmOptions(): TypeOrmModuleOptions {
+  createTypeOrmOptions(
+    name: string = this.configService.get('database.name'),
+  ): TypeOrmModuleOptions {
     return {
+      name,
       type: this.configService.get('database.type'),
       url: this.configService.get('database.url'),
       host: this.configService.get('database.host'),
@@ -19,10 +22,7 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
       dropSchema: false,
       keepConnectionAlive: true,
       logging: false, // this.configService.get('app.nodeEnv') !== 'production',
-      entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-      migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
-      seeds: [__dirname + '/seeds/**/*{.ts,.js}'],
-      factories: [__dirname + '/factories/**/*{.ts,.js}'],
+      autoLoadEntities: true,
       cli: {
         entitiesDir: 'src',
         migrationsDir: 'src/database/migrations',

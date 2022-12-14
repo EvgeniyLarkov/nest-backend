@@ -32,7 +32,9 @@ function createFileExistPipe<
         return request;
       }
 
-      const entity = await this.service.findOne({ uuid: request[field] });
+      const entity = await this.service.findOne({
+        uuid: request[field] as unknown as string,
+      });
 
       if (!entity) {
         throw new HttpException(

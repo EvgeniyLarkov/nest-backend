@@ -13,7 +13,6 @@ import appleConfig from './config/apple.config';
 import * as path from 'path';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthAppleModule } from './auth-apple/auth-apple.module';
 import { AuthFacebookModule } from './auth-facebook/auth-facebook.module';
 import { AuthGoogleModule } from './auth-google/auth-google.module';
@@ -21,7 +20,6 @@ import { AuthTwitterModule } from './auth-twitter/auth-twitter.module';
 import { I18nModule } from 'nestjs-i18n/dist/i18n.module';
 import { I18nJsonParser } from 'nestjs-i18n/dist/parsers/i18n.json.parser';
 import { HeaderResolver } from 'nestjs-i18n';
-import { TypeOrmConfigService } from './database/typeorm-config.service';
 import { MailConfigService } from './mail/mail-config.service';
 import { ForgotModule } from './forgot/forgot.module';
 import { MailModule } from './mail/mail.module';
@@ -32,6 +30,9 @@ import { AiModule } from './ai/ai.module';
 import aiConfig from './config/ai.config';
 import discordConfig from './config/discord.config';
 import { PhotoGeneratorModule } from './photo-generator/photo-generator.module';
+import { DatabaseModule } from './database/database.module';
+import { IsExist } from './shared/validators/is-exists.validator';
+import { SharedModule } from './shared/shared.module';
 
 @Module({
   imports: [
@@ -55,9 +56,9 @@ import { PhotoGeneratorModule } from './photo-generator/photo-generator.module';
     CacheModule.register({
       isGlobal: true,
     }),
-    TypeOrmModule.forRootAsync({
-      useClass: TypeOrmConfigService,
-    }),
+    // TypeOrmModule.forRootAsync({
+    //   useClass: TypeOrmConfigService,
+    // }),
     MailerModule.forRootAsync({
       useClass: MailConfigService,
     }),
@@ -77,6 +78,8 @@ import { PhotoGeneratorModule } from './photo-generator/photo-generator.module';
       inject: [ConfigService],
       resolvers: [new HeaderResolver(['x-custom-lang'])],
     }),
+    SharedModule,
+    DatabaseModule,
     UsersModule,
     FilesModule,
     AuthModule,
@@ -91,5 +94,6 @@ import { PhotoGeneratorModule } from './photo-generator/photo-generator.module';
     AiModule,
     PhotoGeneratorModule,
   ],
+  providers: [IsExist],
 })
 export class AppModule {}
