@@ -13,11 +13,16 @@ import { ConfigurationOptions } from 'aws-sdk';
 import { ConfigurationServicePlaceholders } from 'aws-sdk/lib/config_service_placeholders';
 import { APIVersions } from 'aws-sdk/lib/config';
 import { UsersModule } from 'src/users/users.module';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
     UsersModule,
     TypeOrmModule.forFeature([FileEntity]),
+    HttpModule.register({
+      timeout: 15000,
+      maxRedirects: 5,
+    }),
     MulterModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

@@ -1,8 +1,12 @@
 import { DiscordModule } from '@discord-nestjs/core';
+import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GatewayIntentBits } from 'discord.js';
+import { QueueModule } from 'src/queues/queue.module';
 import { PhotoGeneratorGateway } from './photo-generation.gateway';
+import { PhotoGenerationObserver } from './photo-generator.observer';
+import { PhotoGeneratorService } from './photo-generator.service';
 
 @Module({
   imports: [
@@ -21,7 +25,13 @@ import { PhotoGeneratorGateway } from './photo-generation.gateway';
       }),
       inject: [ConfigService],
     }),
+    BullModule,
+    QueueModule,
   ],
-  providers: [PhotoGeneratorGateway],
+  providers: [
+    PhotoGeneratorGateway,
+    PhotoGeneratorService,
+    PhotoGenerationObserver,
+  ],
 })
 export class PhotoGeneratorModule {}

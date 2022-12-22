@@ -1,5 +1,5 @@
 export type FileUploadReq = {
-  size: number;
+  size?: number;
   location?: string;
   path?: string;
 };

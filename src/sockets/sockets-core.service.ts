@@ -1,14 +1,9 @@
-import {
-  CACHE_MANAGER,
-  HttpStatus,
-  Inject,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { CACHE_MANAGER, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { WsException } from '@nestjs/websockets';
 import { Cache } from 'cache-manager';
 import { Socket } from 'socket.io';
+import { AppLogger } from 'src/logger/app-logger.service';
 import { User } from 'src/users/entities/user.entity';
 import { UsersService } from 'src/users/users.service';
 import serializeResponse from 'src/utils/ws-response-serializer';
@@ -22,14 +17,15 @@ export interface IWsResponseData<T> {
 
 @Injectable()
 export class SocketCoreService {
-  private readonly logger = new Logger('Socket core service');
-
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly socketService: SocketStateService,
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
-  ) {}
+    private readonly logger: AppLogger,
+  ) {
+    this.logger.setContext('SocketCoreService');
+  }
 
   public sendMessage<T>(data: IWsResponseData<T>): void {
     try {
@@ -83,7 +79,9 @@ export class SocketCoreService {
         });
       }
 
-      this.logger.log('connections: ', user.firstName);
+      this.logger.log(
+        `Connected to socket service --- User: ${user.firstName} ${user.lastName} Hash: ${user.hash}`,
+      );
 
       const connections = this.socketService.get(user.hash) || [];
 

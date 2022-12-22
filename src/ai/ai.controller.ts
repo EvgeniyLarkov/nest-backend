@@ -19,6 +19,7 @@ import { Roles } from 'src/roles/roles.decorator';
 import { RoleEnum } from 'src/roles/roles.enum';
 import { RolesGuard } from 'src/roles/roles.guard';
 import { infinityPagination } from 'src/utils/infinity-pagination';
+import { AiQueuesService } from './ai.queues.service';
 import { AiService } from './ai.service';
 import { CreateCharacterDto } from './dto/create-character.dto';
 import { UpdateCharacterDto } from './dto/update-character.dto';
@@ -33,7 +34,10 @@ import { UpdateCharacterDto } from './dto/update-character.dto';
   version: '1',
 })
 export class AiController {
-  constructor(private readonly aiService: AiService) {}
+  constructor(
+    private readonly aiService: AiService,
+    private readonly aiQueueService: AiQueuesService,
+  ) {}
 
   @Get()
   @HttpCode(HttpStatus.ACCEPTED)
@@ -59,6 +63,12 @@ export class AiController {
     return this.aiService.findOne({ hash });
   }
 
+  @Post('character/photo/:hash')
+  @HttpCode(HttpStatus.OK)
+  createPhoto(@Param('hash') hash: string) {
+    return this.aiQueueService.createPhoto(hash);
+  }
+
   @Get('character')
   @HttpCode(HttpStatus.OK)
   async findAll(
@@ -76,5 +86,11 @@ export class AiController {
       }),
       { page, limit },
     );
+  }
+
+  @Post('test')
+  @HttpCode(HttpStatus.CREATED)
+  async createTestJob() {
+    return await this.aiQueueService.createTestJob();
   }
 }

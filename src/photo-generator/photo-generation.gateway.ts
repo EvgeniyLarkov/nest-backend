@@ -1,10 +1,17 @@
 import { On, Once } from '@discord-nestjs/core';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Message } from 'discord.js';
+import { AppLogger } from 'src/logger/app-logger.service';
+import { PhotoGenerationObserver } from './photo-generator.observer';
 
 @Injectable()
 export class PhotoGeneratorGateway {
-  private readonly logger = new Logger('Photo gen service');
+  constructor(
+    private readonly logger: AppLogger,
+    private readonly observerService: PhotoGenerationObserver,
+  ) {
+    this.logger.setContext('PhotoGenerationGateway');
+  }
 
   @Once('ready')
   onReady(): void {
@@ -12,12 +19,12 @@ export class PhotoGeneratorGateway {
   }
 
   @On('messageCreate')
-  onMessage(message: Message): void {
-    this.logger.log(message.content, message.attachments);
+  async onMessage(message: Message) {
+    await this.observerService.handleUpdateMessage(message);
   }
 
   @On('messageUpdate')
-  onMessageUpdate(message: Message): void {
-    this.logger.log(message.content, message.attachments);
+  async onMessageUpdate(message: Message) {
+    await this.observerService.handleUpdateMessage(message);
   }
 }

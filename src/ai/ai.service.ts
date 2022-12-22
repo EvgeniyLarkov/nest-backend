@@ -14,17 +14,23 @@ import { IPaginationOptions } from 'src/utils/types/pagination-options';
 import { CreateCharacterDto } from './dto/create-character.dto';
 import { UpdateCharacterDto } from './dto/update-character.dto';
 import { FindOptionsWhere } from 'typeorm/find-options/FindOptionsWhere';
+import { AppLogger } from 'src/logger/app-logger.service';
+import { FilesService } from 'src/files/files.service';
 
 @Injectable()
 export class AiService {
-  engine = new CharacteristicsEngine();
+  readonly engine = new CharacteristicsEngine();
 
   constructor(
     @InjectRepository(Character)
     private characterRepository: Repository<Character>,
     private usersService: UsersService,
     private aiRequestService: AIRequestService,
-  ) {}
+    private filesService: FilesService,
+    private readonly logger: AppLogger,
+  ) {
+    this.logger.setContext('AiService');
+  }
 
   async create(characterData: CreateCharacterDto = {}) {
     const character = this.engine.generateCharacter(characterData);
@@ -90,6 +96,22 @@ export class AiService {
     await this.characterRepository.update({ hash }, updateCharacterDto);
 
     return this.findOne({ hash });
+  }
+
+  async addPhotoToCharacter(hash: string, src: string) {
+    const character = await this.findOne({ hash });
+
+    if (!character || !character.user) {
+      this.logger.error(
+        `Can't find character with hash ${hash} or related user`,
+      );
+
+      return null;
+    }
+
+    const userEntity = character.user;
+
+    return await this.filesService.getAndUpload(src, userEntity);
   }
 
   findOne(fields: FindOptionsWhere<Character>) {

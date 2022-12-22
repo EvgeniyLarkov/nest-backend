@@ -81,9 +81,11 @@ export class CharacteristicsEngine {
 
     const { location, type } = photoOptions;
 
-    return `Generate a realistic ${type} photo of ${characteristic} ${age} years old ${phenotype} ${gender} at ${location} with ${eyeColor} eyes,
-    ${hairColor} hair, ${constitution} constitution, who can described as 
-    ${temperament.join(', ')}, and works as ${job}`;
+    return `realistic ${type} photo of ${characteristic} ${age} years old ${phenotype} ${gender} at ${location} with ${eyeColor} eyes, ${hairColor} hair, ${constitution} constitution, who can described as ${temperament.join(
+      ', ',
+    )}, and works as ${job}`
+      .toLowerCase()
+      .replace(/(\r\n|\n|\r)/gm, '');
   }
 
   getDescriptionPromptOpenAI(character: AICharacter): string {

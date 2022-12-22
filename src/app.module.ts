@@ -11,6 +11,7 @@ import googleConfig from './config/google.config';
 import twitterConfig from './config/twitter.config';
 import appleConfig from './config/apple.config';
 import * as path from 'path';
+import { redisStore } from 'cache-manager-redis-store';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthAppleModule } from './auth-apple/auth-apple.module';
@@ -33,9 +34,16 @@ import { PhotoGeneratorModule } from './photo-generator/photo-generator.module';
 import { DatabaseModule } from './database/database.module';
 import { IsExist } from './shared/validators/is-exists.validator';
 import { SharedModule } from './shared/shared.module';
+import { TgBotModule } from './tg-bot/tg-bot.module';
+import telegramConfig from './config/telegram.config';
+import { LoggerModule } from './logger/app-logger.module';
+import { BullModule } from '@nestjs/bull';
+import redisConfig from './config/redis.config';
+import { QueueModule } from './queues/queue.module';
 
 @Module({
   imports: [
+    LoggerModule,
     ConfigModule.forRoot({
       isGlobal: true,
       load: [
@@ -50,15 +58,29 @@ import { SharedModule } from './shared/shared.module';
         appleConfig,
         aiConfig,
         discordConfig,
+        telegramConfig,
+        redisConfig,
       ],
       envFilePath: ['.env'],
     }),
-    CacheModule.register({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    CacheModule.registerAsync<any>({
       isGlobal: true,
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => {
+        const store = await redisStore({
+          socket: {
+            host: configService.get('redis.host'),
+            port: configService.get('redis.port'),
+          },
+          // password: configService.get('redis.password'),
+        });
+        return {
+          store: () => store,
+        };
+      },
+      inject: [ConfigService],
     }),
-    // TypeOrmModule.forRootAsync({
-    //   useClass: TypeOrmConfigService,
-    // }),
     MailerModule.forRootAsync({
       useClass: MailConfigService,
     }),
@@ -78,6 +100,18 @@ import { SharedModule } from './shared/shared.module';
       inject: [ConfigService],
       resolvers: [new HeaderResolver(['x-custom-lang'])],
     }),
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        redis: {
+          host: configService.get('redis.host'),
+          port: configService.get('redis.port'),
+          // password: configService.get('redis.password'),
+        },
+      }),
+      inject: [ConfigService],
+    }),
+    QueueModule,
     SharedModule,
     DatabaseModule,
     UsersModule,
@@ -93,7 +127,9 @@ import { SharedModule } from './shared/shared.module';
     ChatModule,
     AiModule,
     PhotoGeneratorModule,
+    TgBotModule,
   ],
   providers: [IsExist],
+  exports: [BullModule],
 })
 export class AppModule {}

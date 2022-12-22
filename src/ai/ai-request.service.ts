@@ -1,9 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { OpenaiDescriptionResponseDto } from './dto/openai-description.dto';
 import { map } from 'rxjs/operators';
 import { firstValueFrom } from 'rxjs';
+import { AppLogger } from 'src/logger/app-logger.service';
 
 export enum AIEngines {
   openai = 'openai',
@@ -11,12 +12,13 @@ export enum AIEngines {
 
 @Injectable()
 export class AIRequestService {
-  private readonly logger = new Logger('AI Request service');
-
   constructor(
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
-  ) {}
+    private readonly logger: AppLogger,
+  ) {
+    this.logger.setContext('AIRequestService');
+  }
 
   getDescription(prompt: string, engine: AIEngines = AIEngines.openai) {
     const endpoint = {
